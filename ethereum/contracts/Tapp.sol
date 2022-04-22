@@ -11,7 +11,7 @@ contract Tapp is ERC20 {
     function mint(uint256 _amount) external {
         require(
             balanceOf(msg.sender) + _amount <= currentBalanceLimit,
-            "Limit reached"
+            "Tapp::balanceOf:Limit reached"
         );
         _mint(msg.sender, _amount);
     }
