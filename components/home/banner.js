@@ -3,7 +3,7 @@ import Image from "next/image"
 import pic from '../../assets/images/bc-iso.jpg'
 const Banner = ({ }) => {
     return <Grid container spacing={2} sx={{ display: 'flex', alignItems: 'center' }}>
-        <Grid item xs={4}>
+        <Grid item md={6} lg={4}>
             <Container sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'start', minHeight: '300px' }}>
                 <Typography
                     variant="h4"
@@ -28,7 +28,7 @@ const Banner = ({ }) => {
                 </Container>
             </Container>
         </Grid>
-        <Grid item xs={8}>
+        <Grid item md={6} lg={8}>
             <Image src={pic} alt="Blockchain, Dapps" />
         </Grid>
 
