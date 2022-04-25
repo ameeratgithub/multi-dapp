@@ -1,68 +1,44 @@
-// SPDX-License-Identifier: None
+// SPDX-License-Identifier: NONE
 
+import "./ERC721.sol";
 pragma solidity ^0.8.9;
 
-contract Monuments {
-    event Approval(
-        address indexed owner,
-        address indexed operator,
-        uint256 tokenId
-    );
-    event ApprovalForAll(
-        address indexed owner,
-        address indexed operator,
-        bool approved
-    );
+contract Monuments is ERC721 {
+    string public name;
+    string public symbol;
+    uint256 public tokenCount;
+    mapping(uint256 => string) private _tokenURIs;
 
-    mapping(address => uint256) private _balances;
-    mapping(uint256 => address) private _owners;
-    mapping(address => mapping(address => bool)) private _approvalsForAll;
-
-    mapping(uint256 => address) private _singleApproval;
-
-    function balanceOf(address _owner) public view returns (uint256) {
-        require(_owner != address(0), "Monuments::balanceOf:Invalid address");
-        return _balances[_owner];
+    constructor(string memory _name, string memory _symbol) {
+        name = _name;
+        symbol = _symbol;
     }
 
-    function ownerOf(uint256 _tokenId) public view returns (address) {
-        address owner = _owners[_tokenId];
-        require(owner != address(0), "Monuments::ownerOf:Token doesn't exist");
-        return owner;
-    }
-
-    function setApprovalForAll(address _operator, bool _approved) public {
-        _approvalsForAll[msg.sender][_operator] = _approved;
-        emit ApprovalForAll(msg.sender, _operator, _approved);
-    }
-
-    function isApprovedForAll(address _owner, address _operator)
-        public
-        view
-        returns (bool)
-    {
-        return _approvalsForAll[_owner][_operator];
-    }
-
-    function approve(address _to, uint256 _tokenId) public {
-        address owner = ownerOf(_tokenId);
-
-        require(
-            msg.sender == owner || isApprovedForAll(owner, msg.sender),
-            "Monuments::approve:Neither owner, nor approved"
-        );
-        require(_to != address(0), "Monuments::approve:Invalid address");
-
-        _singleApproval[_tokenId] = _to;
-
-        emit Approval(owner, _to, _tokenId);
-    }
-
-    function getApproved(uint256 _tokenId) public view returns (address) {
+    function tokenURI(uint256 _tokenId) public view returns (string memory) {
         require(
             _owners[_tokenId] != address(0),
-            "Monuments::getApproved:Token doesn't exist"
+            "Monuments: address doesn't exist"
         );
-        return _singleApproval[_tokenId];
+        return _tokenURIs[_tokenId];
     }
+
+    function mint(string calldata _tokenURI) public {
+        tokenCount++;
+        _tokenURIs[tokenCount] = _tokenURI;
+        _balances[msg.sender]++;
+        _owners[tokenCount] = msg.sender;
+
+        emit Transfer(address(0), msg.sender, tokenCount);
+    }
+
+    function supportsInterface(bytes4 _interfaceId)
+        public
+        pure
+        override
+        returns (bool)
+    {
+        return _interfaceId == 0x80ac58cd || _interfaceId == 0x5b5e139f;
+    }
+    
+        
 }
