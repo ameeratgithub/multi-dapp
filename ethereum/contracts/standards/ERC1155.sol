@@ -44,6 +44,7 @@ contract ERC1155 is IERC1155, ERC165 {
 
     function setApprovalForAll(address _operator, bool _approved) external {
         require(_operator != address(0), "ERC1155: invalid operator");
+
         _approvalsForAll[msg.sender][_operator] = _approved;
 
         emit ApprovalForAll(msg.sender, _operator, _approved);
