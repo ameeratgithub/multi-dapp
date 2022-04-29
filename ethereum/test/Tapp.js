@@ -1,7 +1,7 @@
 const { expect } = require("chai").use(require('chai-as-promised'));
 const { ethers } = require("hardhat");
 
-describe("TAPP", function () {
+xdescribe("TAPP", function () {
 
   let tapp, signer;
   beforeEach(async () => {
