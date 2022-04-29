@@ -3,8 +3,9 @@
 pragma solidity ^0.8.9;
 import "./standards/ERC1155.sol";
 import "./interfaces/IERC1155MetadataURI.sol";
+import "./interfaces/IERC1155.sol";
 
-contract GameItems is ERC1155, IERC1155MetadataURI {
+contract GameItems is ERC1155, IERC1155MetadataURI, IERC1155TokenReceiver {
     string public name;
     string public symbol;
 
@@ -21,11 +22,17 @@ contract GameItems is ERC1155, IERC1155MetadataURI {
         return _tokenURIs[_tokenId];
     }
 
-    function mint(uint _amount, string calldata _uri) external{
+    function mint(uint256 _amount, string calldata _uri) external {
         tokenCount++;
-        _balances[tokenCount][msg.sender]+=_amount;
-        _tokenURIs[tokenCount]=_uri;
-        emit TransferSingle(msg.sender, address(0), msg.sender, tokenCount, _amount);
+        _balances[tokenCount][msg.sender] += _amount;
+        _tokenURIs[tokenCount] = _uri;
+        emit TransferSingle(
+            msg.sender,
+            address(0),
+            msg.sender,
+            tokenCount,
+            _amount
+        );
     }
 
     function supportsInterface(bytes4 _interfaceId)
@@ -37,5 +44,25 @@ contract GameItems is ERC1155, IERC1155MetadataURI {
         return
             _interfaceId == type(IERC1155MetadataURI).interfaceId ||
             super.supportsInterface(_interfaceId);
+    }
+
+    function onERC1155BatchReceived(
+        address,
+        address,
+        uint256[] calldata,
+        uint256[] calldata,
+        bytes calldata
+    ) external pure returns (bytes4) {
+        return IERC1155TokenReceiver.onERC1155BatchReceived.selector;
+    }
+
+    function onERC1155Received(
+        address,
+        address,
+        uint256,
+        uint256,
+        bytes calldata
+    ) external pure returns (bytes4) {
+        return IERC1155TokenReceiver.onERC1155Received.selector;
     }
 }

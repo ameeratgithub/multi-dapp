@@ -4,9 +4,13 @@ import "./standards/ERC721.sol";
 import "./interfaces/IERC721MetaData.sol";
 pragma solidity ^0.8.9;
 
-contract Monuments is ERC721, IERC721MetaData {
+import "./interfaces/IERC721Receiver.sol";
+
+contract Monuments is ERC721, IERC721MetaData, IERC721Receiver {
     string public name;
     string public symbol;
+
+    address public owner;
 
     uint256 public tokenCount;
     mapping(uint256 => string) private _tokenURIs;
@@ -14,6 +18,7 @@ contract Monuments is ERC721, IERC721MetaData {
     constructor(string memory _name, string memory _symbol) {
         name = _name;
         symbol = _symbol;
+        owner = msg.sender;
     }
 
     function tokenURI(uint256 _tokenId) public view returns (string memory) {
@@ -42,5 +47,14 @@ contract Monuments is ERC721, IERC721MetaData {
         return
             _interfaceId == type(IERC721MetaData).interfaceId ||
             super.supportsInterface(_interfaceId);
+    }
+
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes calldata
+    ) external pure returns (bytes4) {
+        return IERC721Receiver.onERC721Received.selector;
     }
 }

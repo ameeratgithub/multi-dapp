@@ -12,6 +12,8 @@ contract ERC721 is IERC721, ERC165 {
 
     mapping(uint256 => address) private _singleApproval;
 
+    
+
     function balanceOf(address _owner) public view returns (uint256) {
         require(_owner != address(0), "Monuments::balanceOf:Invalid address");
         return _balances[_owner];
@@ -41,7 +43,7 @@ contract ERC721 is IERC721, ERC165 {
 
         require(
             msg.sender == owner || isApprovedForAll(owner, msg.sender),
-            "Monuments::approve:Neither owner, nor approved"
+            "ERC721::approve:Neither owner, nor approved"
         );
         require(_to != address(0), "Monuments::approve:Invalid address");
 
@@ -53,7 +55,7 @@ contract ERC721 is IERC721, ERC165 {
     function getApproved(uint256 _tokenId) public view returns (address) {
         require(
             _owners[_tokenId] != address(0),
-            "Monuments::getApproved:Token doesn't exist"
+            "ERC721::getApproved:Token doesn't exist"
         );
         return _singleApproval[_tokenId];
     }
@@ -68,12 +70,12 @@ contract ERC721 is IERC721, ERC165 {
             msg.sender == owner ||
                 msg.sender == getApproved(_tokenId) ||
                 isApprovedForAll(owner, msg.sender),
-            "Monuments::transferFrom:You're not authorized"
+            "ERC721::transferFrom:You're not authorized"
         );
-        require(_from == owner, "Monuments::transferFrom:Invalid source");
-        require(_to != address(0), "Monuments::transferFrom:Invalid recipient");
+        require(_from == owner, "ERC721::transferFrom:Invalid source");
+        require(_to != address(0), "ERC721::transferFrom:Invalid recipient");
 
-        approve(address(0), _tokenId);
+        delete _singleApproval[_tokenId];
 
         _balances[_to] += 1;
         _balances[_from] -= 1;
