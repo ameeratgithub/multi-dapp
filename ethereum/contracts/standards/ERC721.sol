@@ -1,24 +1,11 @@
 // SPDX-License-Identifier: NONE
 pragma solidity ^0.8.9;
 
-import "./interfaces/IERC721Receiver.sol";
-contract ERC721 {
-    event Transfer(
-        address indexed from,
-        address indexed to,
-        uint256 indexed tokenId
-    );
-    event Approval(
-        address indexed owner,
-        address indexed operator,
-        uint256 tokenId
-    );
-    event ApprovalForAll(
-        address indexed owner,
-        address indexed operator,
-        bool approved
-    );
+import "../interfaces/IERC721Receiver.sol";
+import "../interfaces/IERC721.sol";
+import "./ERC165.sol";
 
+contract ERC721 is IERC721, ERC165 {
     mapping(address => uint256) internal _balances;
     mapping(uint256 => address) internal _owners;
     mapping(address => mapping(address => bool)) private _approvalsForAll;
@@ -147,7 +134,15 @@ contract ERC721 {
         return true;
     }
 
-    function supportsInterface(bytes4 interfaceId) public pure returns (bool) {
-        return interfaceId == 0x80ac58cd;
+    function supportsInterface(bytes4 _interfaceId)
+        public
+        pure
+        virtual
+        override
+        returns (bool)
+    {
+        return
+            _interfaceId == type(IERC721).interfaceId ||
+            super.supportsInterface(_interfaceId);
     }
 }
