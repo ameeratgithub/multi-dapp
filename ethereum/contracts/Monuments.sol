@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: NONE
+pragma solidity ^0.8.9;
+
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "./standards/ERC721.sol";
 import "./interfaces/IERC721MetaData.sol";
-pragma solidity ^0.8.9;
-
 import "./interfaces/IERC721Receiver.sol";
 
 contract Monuments is ERC721, IERC721MetaData, IERC721Receiver {
@@ -15,10 +16,17 @@ contract Monuments is ERC721, IERC721MetaData, IERC721Receiver {
     uint256 public tokenCount;
     mapping(uint256 => string) private _tokenURIs;
 
-    constructor(string memory _name, string memory _symbol) {
+    IERC20 public tapp;
+
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        address _tapp
+    ) {
         name = _name;
         symbol = _symbol;
         owner = msg.sender;
+        tapp = IERC20(_tapp);
     }
 
     function tokenURI(uint256 _tokenId) public view returns (string memory) {
@@ -29,13 +37,32 @@ contract Monuments is ERC721, IERC721MetaData, IERC721Receiver {
         return _tokenURIs[_tokenId];
     }
 
-    function mint(string calldata _tokenURI) public {
+    // Need to approve tapp tokens first for this smart contract
+    function mint(string calldata _tokenURI, uint256 _amount) public {
         tokenCount++;
+
+        uint256 tokenPrice = tokenCount * 100;
+        
+        require(_amount >= tokenPrice, "Monuments: Please provide more tokens");
+        require(
+            tapp.allowance(msg.sender, address(this)) >= tokenPrice,
+            "Monuments: Smart Contract not approved"
+        );
+
+        tapp.transferFrom(msg.sender, address(this), tokenPrice);
+
         _tokenURIs[tokenCount] = _tokenURI;
         _balances[msg.sender]++;
         _owners[tokenCount] = msg.sender;
 
         emit Transfer(address(0), msg.sender, tokenCount);
+    }
+
+    function internalTransferTo(address _to, uint256 _tokenId) external {
+        require(msg.sender == owner, "Monuments: You're not the owner");
+        require(_to != address(0), "Monuments: Invalid receipient");
+
+        transferFrom(address(this), _to, _tokenId);
     }
 
     function supportsInterface(bytes4 _interfaceId)
