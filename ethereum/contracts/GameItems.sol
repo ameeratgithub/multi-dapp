@@ -3,21 +3,28 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "./standards/ERC1155.sol";
 import "./interfaces/IERC1155MetadataURI.sol";
 import "./interfaces/IERC1155.sol";
 
 contract GameItems is ERC1155, IERC1155MetadataURI, IERC1155TokenReceiver {
+    struct GameItem {
+        string name;
+        string uri;
+        uint256 price;
+        uint32 allowedAmount;
+        uint32 mintedAmount;
+    }
+
+    using Strings for uint256;
+
     string public name;
     string public symbol;
 
     uint256 public tokenCount;
 
-    mapping(string => uint256) private _prices;
-
-    mapping(uint256 => string) private _tokenNames;
-    mapping(string => uint256) private _allowedAmounts;
+    mapping(uint256 => GameItem) private _gameItems;
 
     string private _baseURI;
 
@@ -46,102 +53,133 @@ contract GameItems is ERC1155, IERC1155MetadataURI, IERC1155TokenReceiver {
     function uri(uint256 _tokenId) external view returns (string memory) {
         return
             bytes(_baseURI).length > 0
-                ? string(abi.encodePacked(_baseURI, _tokenNames[_tokenId]))
+                ? string(
+                    abi.encodePacked(_baseURI, _tokenId.toString(), ".json")
+                )
                 : "";
     }
 
-    function setAllowedAmount(string calldata _name, uint256 _amount)
+    function getItem(uint _tokenId) external view returns(GameItem memory){
+        return _gameItems[_tokenId];
+    }
+
+    function initialize(uint32 _allowedAmount, uint256 _price)
+        external
+        onlyOwner
+    {
+        tokenCount++;
+        setAllowedAmount(tokenCount, _allowedAmount);
+        setPrice(tokenCount, _price);
+    }
+
+    function initializeBatch(
+        uint32[] calldata _allowedAmounts,
+        uint256[] calldata _prices
+    ) external onlyOwner {
+        require(
+            _allowedAmounts.length == _prices.length,
+            "GameItems: Invalid arguments"
+        );
+        uint256[] memory _tokenIds = new uint256[](_allowedAmounts.length);
+        for (uint256 i; i < _prices.length; i++) {
+            _tokenIds[i] = ++tokenCount;
+        }
+        setBatchAllowedAmounts(_tokenIds, _allowedAmounts);
+        setBatchPrices(_tokenIds, _prices);
+    }
+
+    function setAllowedAmount(uint256 _tokenId, uint32 _amount)
         public
         onlyOwner
     {
         require(_amount > 0, "GameItems: Invalid amount");
-        _allowedAmounts[_name] = _amount;
+        _gameItems[_tokenId].allowedAmount = _amount;
     }
 
-    function setAllowedBatchAmounts(
-        string[] calldata _names,
-        uint256[] calldata _amounts
+    function setBatchAllowedAmounts(
+        uint256[] memory _tokenIds,
+        uint32[] calldata _amounts
     ) public onlyOwner {
         require(
-            _names.length == _amounts.length,
+            _tokenIds.length == _amounts.length,
             "GameItems: invalid arguments"
         );
 
-        for (uint256 i; i < _names.length; i++) {
-            setAllowedAmount(_names[i], _amounts[i]);
+        for (uint256 i; i < _tokenIds.length; i++) {
+            setAllowedAmount(_tokenIds[i], _amounts[i]);
         }
     }
 
-    function getAllowedAmount(string calldata _name)
+    function getAllowedAmount(uint256 _tokenId)
         external
         view
         returns (uint256)
     {
-        return _allowedAmounts[_name];
+        return _gameItems[_tokenId].allowedAmount;
     }
 
-    function getBatchAllowedAmounts(string[] calldata _names)
+    function getBatchAllowedAmounts(uint256[] calldata _tokenIds)
         external
         view
-        returns (uint256[] memory)
+        returns (uint32[] memory)
     {
-        uint256[] memory allowedAmounts = new uint256[](_names.length);
+        uint32[] memory allowedAmounts = new uint32[](_tokenIds.length);
 
-        for (uint256 i = 0; i < _names.length; i++) {
-            allowedAmounts[i] = _allowedAmounts[_names[i]];
+        for (uint256 i = 0; i < _tokenIds.length; i++) {
+            allowedAmounts[i] = _gameItems[_tokenIds[i]].allowedAmount;
         }
 
         return allowedAmounts;
     }
 
-
-    function setPrice(string calldata _name, uint256 _amount)
-        external
-        onlyOwner
-    {
-        require(_amount > 0, "GameItems: Invalid amount");
-        _prices[_name] = _amount;
+    function setPrice(uint256 _tokenId, uint256 _price) public onlyOwner {
+        require(_price > 0, "GameItems: Invalid amount");
+        _gameItems[_tokenId].price = _price;
     }
 
     function setBatchPrices(
-        string[] calldata _names,
-        uint256[] calldata _amounts
-    ) external onlyOwner {
+        uint256[] memory _tokenIds,
+        uint256[] calldata _prices
+    ) public onlyOwner {
         require(
-            _names.length == _amounts.length,
+            _tokenIds.length == _prices.length,
             "GameItems: Invalid parameters"
         );
 
-        for (uint256 i = 0; i < _names.length; i++) {
-            require(_amounts[i] > 0, "GameItems: Invalid amount");
-            _prices[_names[i]] = _amounts[i];
+        for (uint256 i = 0; i < _tokenIds.length; i++) {
+            require(_prices[i] > 0, "GameItems: Invalid amount");
+            _gameItems[_tokenIds[i]].price = _prices[i];
         }
     }
 
-    function getPrice(string calldata _name) external view returns (uint256) {
-        return _prices[_name];
+    function getPrice(uint256 _tokenId) external view returns (uint256) {
+        return _gameItems[_tokenId].price;
     }
 
-    function getBatchPrices(string[] calldata _names)
+    function getBatchPrices(uint256[] calldata _tokenIds)
         external
         view
         returns (uint256[] memory)
     {
-        uint256[] memory prices = new uint256[](_names.length);
+        uint256[] memory prices = new uint256[](_tokenIds.length);
 
-        for (uint256 i = 0; i < _names.length; i++) {
-            prices[i] = _prices[_names[i]];
+        for (uint256 i = 0; i < _tokenIds.length; i++) {
+            prices[i] = _gameItems[_tokenIds[i]].price;
         }
 
         return prices;
     }
 
-    function mint(uint256 _amount, string calldata _fullName) external {
-        tokenCount++;
+    function mint(uint32 _amount, uint256 _tokenId) external {
+        GameItem storage item = _gameItems[_tokenId];
+        
+        uint256 price = item.price;
+        require(item.price > 0, "GameItems: Invalid price");
 
-        uint256 price = _prices[_fullName];
-
-        require(price > 0, "GameItems: Invalid price");
+        require(
+            item.mintedAmount + _amount <= item.allowedAmount,
+            "GameItems: Can't mint more than allowed "
+        );
 
         price *= _amount;
 
@@ -152,14 +190,14 @@ contract GameItems is ERC1155, IERC1155MetadataURI, IERC1155TokenReceiver {
 
         tapp.transferFrom(msg.sender, address(this), price);
 
-        _balances[tokenCount][msg.sender] += _amount;
-        _tokenNames[tokenCount] = _fullName;
+        _balances[_tokenId][msg.sender] += _amount;
+        item.mintedAmount+=_amount;
 
         emit TransferSingle(
             msg.sender,
             address(0),
             msg.sender,
-            tokenCount,
+            _tokenId,
             _amount
         );
     }
