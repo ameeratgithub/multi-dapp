@@ -2,31 +2,39 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "./standards/ERC721.sol";
 import "./interfaces/IERC721MetaData.sol";
 import "./interfaces/IERC721Receiver.sol";
 
 contract Monuments is ERC721, IERC721MetaData, IERC721Receiver {
+    using Strings for uint256;
+
     string public name;
     string public symbol;
 
     address public owner;
 
     uint256 public tokenCount;
-    mapping(uint256 => string) private _tokenURIs;
+    
+    // Stores token/asset name with extension by ID
+    mapping(uint256 => string) private _tokenNames;
+    string private _baseURI;
 
     IERC20 public tapp;
 
     constructor(
         string memory _name,
         string memory _symbol,
-        address _tapp
+        address _tapp,
+        string memory baseURI_
     ) {
         name = _name;
         symbol = _symbol;
         owner = msg.sender;
         tapp = IERC20(_tapp);
+        _baseURI = baseURI_;
     }
 
     function tokenURI(uint256 _tokenId) public view returns (string memory) {
@@ -34,24 +42,30 @@ contract Monuments is ERC721, IERC721MetaData, IERC721Receiver {
             _owners[_tokenId] != address(0),
             "Monuments: address doesn't exist"
         );
-        return _tokenURIs[_tokenId];
+        return
+            bytes(_baseURI).length > 0
+                ? string(abi.encodePacked(_baseURI, _tokenNames[_tokenId]))
+                : "";
     }
 
     // Need to approve tapp tokens first for this smart contract
-    function mint(string calldata _tokenURI, uint256 _amount) public {
+    function mint(uint256 _tokenAmount, string calldata _name) public {
         tokenCount++;
 
         uint256 tokenPrice = tokenCount * 100;
-        
-        require(_amount >= tokenPrice, "Monuments: Please provide more tokens");
+
+        require(
+            _tokenAmount >= tokenPrice,
+            "Monuments: Please provide more tokens"
+        );
         require(
             tapp.allowance(msg.sender, address(this)) >= tokenPrice,
             "Monuments: Smart Contract not approved"
         );
 
+        _tokenNames[tokenCount] = _name;
         tapp.transferFrom(msg.sender, address(this), tokenPrice);
 
-        _tokenURIs[tokenCount] = _tokenURI;
         _balances[msg.sender]++;
         _owners[tokenCount] = msg.sender;
 

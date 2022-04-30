@@ -16,67 +16,74 @@ contract GameItems is ERC1155, IERC1155MetadataURI, IERC1155TokenReceiver {
 
     mapping(string => uint256) private _prices;
 
-    mapping(uint256 => string) private _tokenURIs;
+    mapping(uint256 => string) private _tokenNames;
+
+    string private _baseURI;
 
     IERC20 public tapp;
 
     constructor(
         string memory _name,
         string memory _symbol,
+        string memory baseURI_,
         address _tapp
     ) {
         name = _name;
         symbol = _symbol;
         tapp = IERC20(_tapp);
+        _baseURI = baseURI_;
     }
 
     function uri(uint256 _tokenId) external view returns (string memory) {
-        return _tokenURIs[_tokenId];
+        return
+            bytes(_baseURI).length > 0
+                ? string(abi.encodePacked(_baseURI, _tokenNames[_tokenId]))
+                : "";
     }
 
-    function setPrice(string calldata _uri, uint256 _amount) external {
+    function setPrice(string calldata _name, uint256 _amount) external {
         require(_amount > 0, "GameItems: Invalid amount");
-        _prices[_uri] = _amount;
+        _prices[_name] = _amount;
     }
 
     function setBatchPrices(
-        string[] calldata _uris,
+        string[] calldata _names,
         uint256[] calldata _amounts
     ) external {
         require(
-            _uris.length == _amounts.length,
+            _names.length == _amounts.length,
             "GameItems: Invalid parameters"
         );
 
-        for (uint256 i = 0; i < _uris.length; i++) {
+        for (uint256 i = 0; i < _names.length; i++) {
             require(_amounts[i] > 0, "GameItems: Invalid amount");
-            _prices[_uris[i]] = _amounts[i];
+            _prices[_names[i]] = _amounts[i];
         }
     }
 
-    function getPrice(string calldata _uri) external view returns (uint256) {
-        return _prices[_uri];
+    function getPrice(string calldata _name) external view returns (uint256) {
+        return _prices[_name];
     }
 
-    function getBatchPrices(string[] calldata _uris)
+    function getBatchPrices(string[] calldata _names)
         external
         view
         returns (uint256[] memory)
     {
-        uint256[] memory prices = new uint256[](_uris.length);
+        uint256[] memory prices = new uint256[](_names.length);
 
-        for (uint256 i = 0; i < _uris.length; i++) {
-            prices[i] = _prices[_uris[i]];
+        for (uint256 i = 0; i < _names.length; i++) {
+            prices[i] = _prices[_names[i]];
         }
 
         return prices;
     }
 
-    function mint(uint256 _amount, string calldata _uri) external {
+    function mint(uint256 _amount, string calldata _fullName) external {
         tokenCount++;
-        
-        uint256 price = _prices[_uri];
-        
+
+        uint256 price = _prices[_fullName];
+
         require(price > 0, "GameItems: Invalid price");
 
         require(
@@ -87,7 +94,7 @@ contract GameItems is ERC1155, IERC1155MetadataURI, IERC1155TokenReceiver {
         tapp.transferFrom(msg.sender, address(this), price);
 
         _balances[tokenCount][msg.sender] += _amount;
-        _tokenURIs[tokenCount] = _uri;
+        _tokenNames[tokenCount] = _fullName;
 
         emit TransferSingle(
             msg.sender,
