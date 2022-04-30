@@ -17,10 +17,18 @@ contract GameItems is ERC1155, IERC1155MetadataURI, IERC1155TokenReceiver {
     mapping(string => uint256) private _prices;
 
     mapping(uint256 => string) private _tokenNames;
+    mapping(string => uint256) private _allowedAmounts;
 
     string private _baseURI;
 
     IERC20 public tapp;
+
+    address public owner;
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "GameItems: You're not the owner");
+        _;
+    }
 
     constructor(
         string memory _name,
@@ -32,6 +40,7 @@ contract GameItems is ERC1155, IERC1155MetadataURI, IERC1155TokenReceiver {
         symbol = _symbol;
         tapp = IERC20(_tapp);
         _baseURI = baseURI_;
+        owner = msg.sender;
     }
 
     function uri(uint256 _tokenId) external view returns (string memory) {
@@ -41,7 +50,55 @@ contract GameItems is ERC1155, IERC1155MetadataURI, IERC1155TokenReceiver {
                 : "";
     }
 
-    function setPrice(string calldata _name, uint256 _amount) external {
+    function setAllowedAmount(string calldata _name, uint256 _amount)
+        public
+        onlyOwner
+    {
+        require(_amount > 0, "GameItems: Invalid amount");
+        _allowedAmounts[_name] = _amount;
+    }
+
+    function setAllowedBatchAmounts(
+        string[] calldata _names,
+        uint256[] calldata _amounts
+    ) public onlyOwner {
+        require(
+            _names.length == _amounts.length,
+            "GameItems: invalid arguments"
+        );
+
+        for (uint256 i; i < _names.length; i++) {
+            setAllowedAmount(_names[i], _amounts[i]);
+        }
+    }
+
+    function getAllowedAmount(string calldata _name)
+        external
+        view
+        returns (uint256)
+    {
+        return _allowedAmounts[_name];
+    }
+
+    function getBatchAllowedAmounts(string[] calldata _names)
+        external
+        view
+        returns (uint256[] memory)
+    {
+        uint256[] memory allowedAmounts = new uint256[](_names.length);
+
+        for (uint256 i = 0; i < _names.length; i++) {
+            allowedAmounts[i] = _allowedAmounts[_names[i]];
+        }
+
+        return allowedAmounts;
+    }
+
+
+    function setPrice(string calldata _name, uint256 _amount)
+        external
+        onlyOwner
+    {
         require(_amount > 0, "GameItems: Invalid amount");
         _prices[_name] = _amount;
     }
@@ -49,7 +106,7 @@ contract GameItems is ERC1155, IERC1155MetadataURI, IERC1155TokenReceiver {
     function setBatchPrices(
         string[] calldata _names,
         uint256[] calldata _amounts
-    ) external {
+    ) external onlyOwner {
         require(
             _names.length == _amounts.length,
             "GameItems: Invalid parameters"
@@ -85,6 +142,8 @@ contract GameItems is ERC1155, IERC1155MetadataURI, IERC1155TokenReceiver {
         uint256 price = _prices[_fullName];
 
         require(price > 0, "GameItems: Invalid price");
+
+        price *= _amount;
 
         require(
             tapp.allowance(msg.sender, address(this)) >= price,

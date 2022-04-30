@@ -52,7 +52,7 @@ contract Monuments is ERC721, IERC721MetaData, IERC721Receiver {
     function mint(uint256 _tokenAmount, string calldata _name) public {
         tokenCount++;
 
-        uint256 tokenPrice = tokenCount * 100;
+        uint256 tokenPrice = tokenCount * 100 * 10**18;
 
         require(
             _tokenAmount >= tokenPrice,
