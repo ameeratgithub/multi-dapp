@@ -6,6 +6,9 @@ const { ethers } = require('hardhat')
 const { expect } = require('chai')
 
 
+const _e = (amount) => {
+    return ethers.utils.parseEther(amount.toString())
+}
 describe.only("GameItems", () => {
     let gameItems, signer, signer2, signer3, tapp
     const baseURI = 'https://gameitems.com/'
@@ -22,63 +25,57 @@ describe.only("GameItems", () => {
 
         await gameItems.deployed()
 
-
+        await gameItems.initializeBatch([1000, 200, 50, 10], [_e(1), _e(5), _e(20), _e(100)])
 
 
     })
 
-    xdescribe('Setting Constraints', () => {
+    describe('Setting Constraints', () => {
         it('sets prices of tokens individually', async () => {
             await Promise.all([
-                gameItems.setPrice('bronze.png', ethers.utils.parseEther('1')),
-                gameItems.setPrice('silver.png', ethers.utils.parseEther('5')),
-                gameItems.setPrice('gold.webp', ethers.utils.parseEther('25')),
-                gameItems.setPrice('diamond.webp', ethers.utils.parseEther('125'))
+                gameItems.setPrice(1, _e(1)),
+                gameItems.setPrice(2, _e(5)),
+                gameItems.setPrice(3, _e(20)),
+                gameItems.setPrice(4, _e(100))
             ])
 
             const prices = await Promise.all([
-                gameItems.getPrice('bronze.png'),
-                gameItems.getPrice('silver.png'),
-                gameItems.getPrice('gold.webp'),
-                gameItems.getPrice('diamond.webp')
+                gameItems.getPrice(1),
+                gameItems.getPrice(2),
+                gameItems.getPrice(3),
+                gameItems.getPrice(4)
             ])
 
-            expect(prices[0].toString()).to.be.equal(ethers.utils.parseEther('1'))
-            expect(prices[1].toString()).to.be.equal(ethers.utils.parseEther('5'))
-            expect(prices[2].toString()).to.be.equal(ethers.utils.parseEther('25'))
-            expect(prices[3].toString()).to.be.equal(ethers.utils.parseEther('125'))
+            expect(prices[0].toString()).to.be.equal(_e(1))
+            expect(prices[1].toString()).to.be.equal(_e(5))
+            expect(prices[2].toString()).to.be.equal(_e(20))
+            expect(prices[3].toString()).to.be.equal(_e(100))
 
         })
         it('sets batch prices of tokens', async () => {
             await gameItems.setBatchPrices(
-                ['bronze.png', 'silver.png', 'gold.webp', 'diamond.webp'],
-                [
-                    ethers.utils.parseEther('1'),
-                    ethers.utils.parseEther('5'),
-                    ethers.utils.parseEther('25'),
-                    ethers.utils.parseEther('125')
-                ]
+                [1, 2, 3, 4], [_e(1), _e(5), _e(20), _e(100)]
             )
-            const prices = await gameItems.getBatchPrices(['bronze.png', 'silver.png', 'gold.webp', 'diamond.webp'])
+            const prices = await gameItems.getBatchPrices([1, 2, 3, 4])
 
-            expect(prices[0].toString()).to.be.equal(ethers.utils.parseEther('1'))
-            expect(prices[1].toString()).to.be.equal(ethers.utils.parseEther('5'))
-            expect(prices[2].toString()).to.be.equal(ethers.utils.parseEther('25'))
-            expect(prices[3].toString()).to.be.equal(ethers.utils.parseEther('125'))
+            expect(prices[0].toString()).to.be.equal(_e(1))
+            expect(prices[1].toString()).to.be.equal(_e(5))
+            expect(prices[2].toString()).to.be.equal(_e(20))
+            expect(prices[3].toString()).to.be.equal(_e(100))
         })
         it('sets allowed amounts of tokens individually', async () => {
             await Promise.all([
-                gameItems.setAllowedAmount('bronze.png', 1000),
-                gameItems.setAllowedAmount('silver.png', 200),
-                gameItems.setAllowedAmount('gold.webp', 25),
-                gameItems.setAllowedAmount('diamond.webp', 5)
+                gameItems.setAllowedAmount(1, 1000),
+                gameItems.setAllowedAmount(2, 200),
+                gameItems.setAllowedAmount(3, 25),
+                gameItems.setAllowedAmount(4, 5)
             ])
 
             const allowedAmounts = await Promise.all([
-                gameItems.getAllowedAmount('bronze.png'),
-                gameItems.getAllowedAmount('silver.png'),
-                gameItems.getAllowedAmount('gold.webp'),
-                gameItems.getAllowedAmount('diamond.webp')
+                gameItems.getAllowedAmount(1),
+                gameItems.getAllowedAmount(2),
+                gameItems.getAllowedAmount(3),
+                gameItems.getAllowedAmount(4)
             ])
 
             expect(allowedAmounts[0]).to.be.equal(1000)
@@ -89,7 +86,7 @@ describe.only("GameItems", () => {
         })
         it('sets batch allowed amounts of tokens', async () => {
             await gameItems.setBatchAllowedAmounts(
-                ['bronze.png', 'silver.png', 'gold.webp', 'diamond.webp'],
+                [1, 2, 3, 4],
                 [
                     1000,
                     200,
@@ -97,7 +94,8 @@ describe.only("GameItems", () => {
                     5
                 ]
             )
-            const allowedAmounts = await gameItems.getBatchAllowedAmounts(['bronze.png', 'silver.png', 'gold.webp', 'diamond.webp'])
+
+            const allowedAmounts = await gameItems.getBatchAllowedAmounts([1, 2, 3, 4])
 
             expect(allowedAmounts[0]).to.be.equal(1000)
             expect(allowedAmounts[1]).to.be.equal(200)
@@ -108,31 +106,31 @@ describe.only("GameItems", () => {
 
     describe('Minting and transfering', () => {
         beforeEach(async () => {
-            await tapp.mint(ethers.utils.parseEther('2000'))
-            await tapp.connect(signer2).mint(ethers.utils.parseEther('2000'))
-            await tapp.connect(signer3).mint(ethers.utils.parseEther('2000'))
+            await tapp.mint(_e(2000))
+            await tapp.connect(signer2).mint(_e(2000))
+            await tapp.connect(signer3).mint(_e(2000))
 
-            await tapp.approve(gameItems.address, ethers.utils.parseEther('156'));
-            await tapp.connect(signer2).approve(gameItems.address, ethers.utils.parseEther('156'));
-            await tapp.connect(signer3).approve(gameItems.address, ethers.utils.parseEther('156'));
+            await tapp.approve(gameItems.address, _e(2000));
+            await tapp.connect(signer2).approve(gameItems.address, _e(2000));
+            await tapp.connect(signer3).approve(gameItems.address, _e(2000));
         })
 
         it('mints some specified tokens', async () => {
 
-            await gameItems.mint(1, 'bronze.png')
-            await gameItems.mint(1, 'silver.png')
-            await gameItems.mint(1, 'gold.webp')
-            await gameItems.mint(1, 'diamond.webp')
+            await gameItems.mint(20, 1)
+            await gameItems.mint(10, 2)
+            await gameItems.mint(5, 3)
+            await gameItems.mint(1, 4)
 
             const uri1 = await gameItems.uri(1)
             const uri2 = await gameItems.uri(2)
             const uri3 = await gameItems.uri(3)
             const uri4 = await gameItems.uri(4)
 
-            expect(uri1).to.be.equal(baseURI + 'bronze.png')
-            expect(uri2).to.be.equal(baseURI + 'silver.png')
-            expect(uri3).to.be.equal(baseURI + 'gold.webp')
-            expect(uri4).to.be.equal(baseURI + 'diamond.webp')
+            expect(uri1).to.be.equal(baseURI + '1.json')
+            expect(uri2).to.be.equal(baseURI + '2.json')
+            expect(uri3).to.be.equal(baseURI + '3.json')
+            expect(uri4).to.be.equal(baseURI + '4.json')
 
             const balanceOf1 = await gameItems.balanceOf(signer.address, 1)
             const balanceOf2 = await gameItems.balanceOf(signer.address, 2)
@@ -141,119 +139,119 @@ describe.only("GameItems", () => {
 
             const tappBalance = await tapp.balanceOf(signer.address);
 
-            expect(tappBalance.toString()).to.be.equal(ethers.utils.parseEther((2000 - 156).toString()))
+            expect(tappBalance.toString()).to.be.equal(_e(2000 - (20 + 50 + 100 + 100)))
 
-            expect(balanceOf1.toString()).to.be.equal('1000')
-            expect(balanceOf2.toString()).to.be.equal('100')
-            expect(balanceOf3.toString()).to.be.equal('10')
+            expect(balanceOf1.toString()).to.be.equal('20')
+            expect(balanceOf2.toString()).to.be.equal('10')
+            expect(balanceOf3.toString()).to.be.equal('5')
             expect(balanceOf4.toString()).to.be.equal('1')
 
         })
+        it('checks balances of batch', async () => {
+            await gameItems.mint(20, 1)
+            await gameItems.connect(signer2).mint(10, 2)
+            await gameItems.connect(signer3).mint(5, 3)
+            await gameItems.mint(1, 4)
+    
+            const batchBalances = await gameItems.balanceOfBatch(
+                [signer.address, signer2.address, signer3.address, signer.address]
+                , [1, 2, 3, 4])
+    
+            expect(batchBalances[0].toString()).to.be.equal('20')
+            expect(batchBalances[1].toString()).to.be.equal('10')
+            expect(batchBalances[2].toString()).to.be.equal('5')
+            expect(batchBalances[3].toString()).to.be.equal('1')
+        })
+    
+        it('approves an operator', async () => {
+            await gameItems.mint(20, 1)
+            await gameItems.mint(1, 4)
+    
+            await gameItems.setApprovalForAll(signer2.address, true)
+    
+            const isApproved = await gameItems.isApprovedForAll(signer.address, signer2.address)
+            const isApproved2 = await gameItems.isApprovedForAll(signer.address, signer3.address)
+    
+            expect(isApproved).to.be.true
+            expect(isApproved2).not.to.be.true
+        })
+    
+    
+        it('transfer some items', async () => {
+            await gameItems.mint(20, 1)
+            await gameItems.connect(signer2).mint(10, 2)
+            await gameItems.connect(signer3).mint(5, 3)
+            await gameItems.connect(signer3).mint(1, 4)
+    
+    
+            await gameItems.connect(signer3).setApprovalForAll(signer.address, true)
+    
+            let token1Of2 = await gameItems.balanceOf(signer2.address, 1)
+            let token3Of2 = await gameItems.balanceOf(signer2.address, 3)
+    
+            expect(token1Of2.toString()).to.be.equal('0')
+            expect(token3Of2.toString()).to.be.equal('0')
+    
+            await gameItems.safeTransferFrom(signer.address, signer2.address, 1, 10, [])
+            await gameItems.safeTransferFrom(signer3.address, signer2.address, 3, 3, [])
+    
+            token1Of2 = await gameItems.balanceOf(signer2.address, 1)
+            token3Of2 = await gameItems.balanceOf(signer2.address, 3)
+    
+            expect(token1Of2.toString()).to.be.equal('10')
+            expect(token3Of2.toString()).to.be.equal('3')
+    
+    
+            const balanceOf1 = await gameItems.balanceOf(signer.address, 1)
+            const balanceOf3 = await gameItems.balanceOf(signer3.address, 3)
+    
+            expect(balanceOf1.toString()).to.be.equal('10')
+            expect(balanceOf3.toString()).to.be.equal('2')
+    
+        })
+        it('transfer some batch items', async () => {
+            await gameItems.mint(20, 1)
+            await gameItems.connect(signer2).mint(10, 2)
+            await gameItems.connect(signer3).mint(5, 3)
+            await gameItems.connect(signer3).mint(1, 4)
+    
+    
+            await gameItems.connect(signer3).setApprovalForAll(signer.address, true)
+    
+            let token3Of2 = await gameItems.balanceOf(signer2.address, 3)
+            let token4Of2 = await gameItems.balanceOf(signer2.address, 4)
+            expect(token3Of2.toString()).to.be.equal('0')
+            expect(token4Of2.toString()).to.be.equal('0')
+    
+            await gameItems.connect(signer3).safeBatchTransferFrom(signer3.address, signer2.address, [3, 4], [5, 1], [])
+    
+            token3Of2 = await gameItems.balanceOf(signer2.address, 3)
+            token4Of2 = await gameItems.balanceOf(signer2.address, 4)
+    
+            expect(token3Of2.toString()).to.be.equal('5')
+            expect(token4Of2.toString()).to.be.equal('1')
+    
+    
+            const balanceOf3 = await gameItems.balanceOf(signer3.address, 3)
+            const balanceOf4 = await gameItems.balanceOf(signer3.address, 4)
+    
+            expect(balanceOf3.toString()).to.be.equal('0')
+            expect(balanceOf4.toString()).to.be.equal('0')
+    
+        })
+    
+        it('supports required interfaces', async () => {
+            const supportsERC1155 = await gameItems.supportsInterface(ERC1155_INTERFACE_ID)
+            const supportsERC1155Metadata = await gameItems.supportsInterface(ERC1155_METADATA_URI_INTERFACE_ID)
+            const supportsERC165 = await gameItems.supportsInterface(ERC165_INTERFACE_ID)
+            const supportsFFFF = await gameItems.supportsInterface('0xffffffff')
+    
+            expect(supportsERC1155).to.be.true
+            expect(supportsERC1155Metadata).to.be.true
+            expect(supportsERC165).to.be.true
+            expect(supportsFFFF).not.to.be.true
+        })
     })
 
-    xit('checks balances of batch', async () => {
-        await gameItems.mint(1000, 'bronze')
-        await gameItems.connect(signer2).mint(100, 'silver')
-        await gameItems.connect(signer3).mint(10, 'gold')
-        await gameItems.mint(1, 'diamond')
-
-        const batchBalances = await gameItems.balanceOfBatch(
-            [signer.address, signer2.address, signer3.address, signer.address]
-            , [1, 2, 3, 4])
-
-        expect(batchBalances[0].toString()).to.be.equal('1000')
-        expect(batchBalances[1].toString()).to.be.equal('100')
-        expect(batchBalances[2].toString()).to.be.equal('10')
-        expect(batchBalances[3].toString()).to.be.equal('1')
-    })
-
-    xit('approves an operator', async () => {
-        await gameItems.mint(1000, 'bronze')
-        await gameItems.mint(1, 'diamond')
-
-        await gameItems.setApprovalForAll(signer2.address, true)
-
-        const isApproved = await gameItems.isApprovedForAll(signer.address, signer2.address)
-        const isApproved2 = await gameItems.isApprovedForAll(signer.address, signer3.address)
-
-        expect(isApproved).to.be.true
-        expect(isApproved2).not.to.be.true
-    })
-
-
-    xit('transfer some items', async () => {
-        await gameItems.mint(1000, 'bronze')
-        await gameItems.connect(signer2).mint(100, 'silver')
-        await gameItems.connect(signer3).mint(10, 'gold')
-        await gameItems.connect(signer3).mint(1, 'diamond')
-
-
-        await gameItems.connect(signer3).setApprovalForAll(signer.address, true)
-
-        let token1Of2 = await gameItems.balanceOf(signer2.address, 1)
-        let token3Of2 = await gameItems.balanceOf(signer2.address, 3)
-
-        expect(token1Of2.toString()).to.be.equal('0')
-        expect(token3Of2.toString()).to.be.equal('0')
-
-        await gameItems.safeTransferFrom(signer.address, signer2.address, 1, 100, [])
-        await gameItems.safeTransferFrom(signer3.address, signer2.address, 3, 5, [])
-
-        token1Of2 = await gameItems.balanceOf(signer2.address, 1)
-        token3Of2 = await gameItems.balanceOf(signer2.address, 3)
-
-        expect(token1Of2.toString()).to.be.equal('100')
-        expect(token3Of2.toString()).to.be.equal('5')
-
-
-        const balanceOf1 = await gameItems.balanceOf(signer.address, 1)
-        const balanceOf3 = await gameItems.balanceOf(signer3.address, 3)
-
-        expect(balanceOf1.toString()).to.be.equal('900')
-        expect(balanceOf3.toString()).to.be.equal('5')
-
-    })
-    xit('transfer some batch items', async () => {
-        await gameItems.mint(1000, 'bronze')
-
-        await gameItems.connect(signer2).mint(100, 'silver')
-        await gameItems.connect(signer3).mint(10, 'gold')
-        await gameItems.connect(signer3).mint(1, 'diamond')
-
-
-        await gameItems.connect(signer3).setApprovalForAll(signer.address, true)
-
-        let token3Of2 = await gameItems.balanceOf(signer2.address, 3)
-        let token4Of2 = await gameItems.balanceOf(signer2.address, 4)
-        expect(token3Of2.toString()).to.be.equal('0')
-        expect(token4Of2.toString()).to.be.equal('0')
-
-        await gameItems.connect(signer3).safeBatchTransferFrom(signer3.address, signer2.address, [3, 4], [5, 1], [])
-
-        token3Of2 = await gameItems.balanceOf(signer2.address, 3)
-        token4Of2 = await gameItems.balanceOf(signer2.address, 4)
-
-        expect(token3Of2.toString()).to.be.equal('5')
-        expect(token4Of2.toString()).to.be.equal('1')
-
-
-        const balanceOf3 = await gameItems.balanceOf(signer3.address, 3)
-        const balanceOf4 = await gameItems.balanceOf(signer3.address, 4)
-
-        expect(balanceOf3.toString()).to.be.equal('5')
-        expect(balanceOf4.toString()).to.be.equal('0')
-
-    })
-
-    xit('supports required interfaces', async () => {
-        const supportsERC1155 = await gameItems.supportsInterface(ERC1155_INTERFACE_ID)
-        const supportsERC1155Metadata = await gameItems.supportsInterface(ERC1155_METADATA_URI_INTERFACE_ID)
-        const supportsERC165 = await gameItems.supportsInterface(ERC165_INTERFACE_ID)
-        const supportsFFFF = await gameItems.supportsInterface('0xffffffff')
-
-        expect(supportsERC1155).to.be.true
-        expect(supportsERC1155Metadata).to.be.true
-        expect(supportsERC165).to.be.true
-        expect(supportsFFFF).not.to.be.true
-    })
+   
 })
