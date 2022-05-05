@@ -19,7 +19,7 @@ contract Monuments is ERC721, IERC721MetaData, IERC721Receiver {
     uint256 public tokenCount;
     
     // Stores token/asset name with extension by ID
-    mapping(uint256 => string) private _tokenNames;
+    // mapping(uint256 => string) private _tokenNames;
     string private _baseURI;
 
     IERC20 public tapp;
@@ -44,18 +44,18 @@ contract Monuments is ERC721, IERC721MetaData, IERC721Receiver {
         );
         return
             bytes(_baseURI).length > 0
-                ? string(abi.encodePacked(_baseURI, _tokenNames[_tokenId]))
+                ? string(abi.encodePacked(_baseURI, _tokenId.toString(),".json"))
                 : "";
     }
 
     // Need to approve tapp tokens first for this smart contract
-    function mint(uint256 _tokenAmount, string calldata _name) public {
+    function mint(uint256 _tokenPrice) public {
         tokenCount++;
 
         uint256 tokenPrice = tokenCount * 100 * 10**18;
 
         require(
-            _tokenAmount >= tokenPrice,
+            _tokenPrice >= tokenPrice,
             "Monuments: Please provide more tokens"
         );
         require(
@@ -63,7 +63,7 @@ contract Monuments is ERC721, IERC721MetaData, IERC721Receiver {
             "Monuments: Smart Contract not approved"
         );
 
-        _tokenNames[tokenCount] = _name;
+        // _tokenNames[tokenCount] = _name;
         tapp.transferFrom(msg.sender, address(this), tokenPrice);
 
         _balances[msg.sender]++;

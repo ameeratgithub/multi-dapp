@@ -25,7 +25,7 @@ xdescribe("TAPP", function () {
     expect(balance.toString()).to.be.eq(mintingAmount.toString())
   });
   it("Should not mint more tokens than limit", async function () {
-    const instance = tapp.mint(ethers.utils.parseEther("2100"));
+    const instance = tapp.mint(ethers.utils.parseEther("4100"));
     await expect(instance).to.eventually.be.rejectedWith("Limit reached")
   });
 });

@@ -9,7 +9,7 @@ const { expect } = require('chai')
 const _e = (amount) => {
     return ethers.utils.parseEther(amount.toString())
 }
-describe.only("GameItems", () => {
+xdescribe("GameItems", () => {
     let gameItems, signer, signer2, signer3, tapp
     const baseURI = 'https://gameitems.com/'
 

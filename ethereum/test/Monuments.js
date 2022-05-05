@@ -6,20 +6,37 @@ const ERC165_INTERFACE_ID = '0x01ffc9a7'
 const { ethers } = require('hardhat')
 const { expect } = require('chai')
 
+const _e = (amount) => {
+    return ethers.utils.parseEther(amount.toString())
+}
 
-xdescribe("Monuments", () => {
-    let monuments, signer, signer2, signer3
+const baseURI = 'https://monuments.com/'
+
+describe.only("Monuments", () => {
+    let monuments, signer, signer2, signer3, tapp
 
     beforeEach(async () => {
         [signer, signer2, signer3] = await ethers.getSigners()
 
+        const Tapp = await ethers.getContractFactory('Tapp')
+        tapp = await Tapp.deploy()
+
         const Monuments = await ethers.getContractFactory('Monuments')
-        monuments = await Monuments.deploy("Monument Valley", "MV")
+        monuments = await Monuments.deploy("Monument Valley", "MV", tapp.address, baseURI)
         await monuments.deployed()
+
+        await tapp.mint(_e(2000))
+        await tapp.connect(signer2).mint(_e(2000))
+        await tapp.connect(signer3).mint(_e(2000))
+
+        await tapp.approve(monuments.address, _e(2000));
+        await tapp.connect(signer2).approve(monuments.address, _e(2000));
+        await tapp.connect(signer3).approve(monuments.address, _e(2000));
+
     })
-    xit("mints tokens to msg.sender", async () => {
-        await monuments.mint("tokenuri1")
-        await monuments.mint("tokenuri2")
+    it("mints tokens to msg.sender", async () => {
+        await monuments.mint(_e(100))
+        await monuments.mint(_e(200))
 
         const ownerof1 = await monuments.ownerOf(1)
         const ownerof2 = await monuments.ownerOf(2)
@@ -32,9 +49,9 @@ xdescribe("Monuments", () => {
         expect(balance.toString()).to.be.eq("2")
 
     })
-    xit("approves an operator for all tokens", async () => {
-        await monuments.mint("tokenuri1")
-        await monuments.mint("tokenuri2")
+    it("approves an operator for all tokens", async () => {
+        await monuments.mint(_e(100))
+        await monuments.mint(_e(200))
 
         await monuments.setApprovalForAll(signer2.address, true)
 
@@ -44,21 +61,21 @@ xdescribe("Monuments", () => {
 
     })
     it("gets token uris", async () => {
-        await monuments.mint("tokenuri1")
-        await monuments.mint("tokenuri2")
+        await monuments.mint(_e(100))
+        await monuments.mint(_e(200))
 
-        
+
 
         const uri1 = await monuments.tokenURI(1)
         const uri2 = await monuments.tokenURI(2)
 
-        expect(uri1).to.be.equal("tokenuri1")
-        expect(uri2).to.be.equal("tokenuri2")
+        expect(uri1).to.be.equal(baseURI+ "1.json")
+        expect(uri2).to.be.equal(baseURI+ "2.json")
 
     })
-    xit("approves an operator for specific token", async () => {
-        await monuments.mint("tokenuri1")
-        await monuments.mint("tokenuri2")
+    it("approves an operator for specific token", async () => {
+        await monuments.mint(_e(100))
+        await monuments.mint(_e(200))
 
         await monuments.approve(signer2.address, 1)
         await monuments.approve(signer3.address, 2)
@@ -73,8 +90,8 @@ xdescribe("Monuments", () => {
 
 
     it("transfer tokens to specified address", async () => {
-        await monuments.mint("tokenuri1")
-        await monuments.mint("tokenuri2")
+        await monuments.mint(_e(100))
+        await monuments.mint(_e(200))
 
         await monuments.approve(signer2.address, 1)
         await monuments.approve(signer3.address, 2)
@@ -94,7 +111,7 @@ xdescribe("Monuments", () => {
 
 
 
-    xit('supports required interfaces', async () => {
+    it('supports required interfaces', async () => {
         const supportsERC721 = await monuments.supportsInterface(ERC721_INTERFACE_ID)
         const supportsERC721Metadata = await monuments.supportsInterface(ERC721_METADATA_INTERFACE_ID)
         const supportsERC165 = await monuments.supportsInterface(ERC165_INTERFACE_ID)
