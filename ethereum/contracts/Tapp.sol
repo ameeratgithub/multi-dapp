@@ -4,7 +4,7 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract Tapp is ERC20 {
-    uint256 private currentBalanceLimit = 4000 * 10**18;
+    uint256 public currentBalanceLimit = 4000 * 10**18;
 
     constructor() ERC20("TAPP", "TAP") {}
 

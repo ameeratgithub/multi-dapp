@@ -1,5 +1,6 @@
 import { Button, Container, Divider, Grid, Typography } from "@mui/material"
 import Image from "next/image"
+import Link from "next/link"
 import React, { useContext, useState } from "react"
 import pic from '../../assets/images/bc-iso.jpg'
 import { useWeb3, useWeb3Update } from "../../utils/web3-context"
@@ -7,7 +8,6 @@ import { useWeb3, useWeb3Update } from "../../utils/web3-context"
 
 const Banner = () => {
     const { signer, provider, address } = useWeb3()
-    console.log("Signer Address: ", address)
 
     const connect = useWeb3Update()
 
@@ -28,12 +28,14 @@ const Banner = () => {
                     Explore multiple dapps, inter-connected to each other, demonstrating potential of blockchain
                 </Typography>
                 <Container sx={{ display: 'flex', justifyContent: 'space-between', mt: '30px' }}>
-                    {address?'':<Button variant="outlined" sx={{ width: '35%' }} onClick={connect}>
-                        Connect
-                    </Button>}
-                    <Button variant="contained" sx={{ width: '55%' }}>
+                    {address ? <Link href={`/faucet`} passHref>
+                        <Button variant="contained" sx={{ width: '65%' }}>
                         Get Started
                     </Button>
+                    </Link> : <Button variant="contained" sx={{ width: '65%' }} onClick={connect}>
+                        Connect Wallet
+                    </Button>}
+
                 </Container>
             </Container>
         </Grid>

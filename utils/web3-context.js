@@ -44,7 +44,30 @@ const initializeWeb3Modal = () => {
         cacheProvider: true,
         providerOptions
     })
+
 }
+
+function switchNetwork() {
+    if (window.ethereum) {
+        window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [{
+                chainId: "0x13881",
+                rpcUrls: ["https://rpc-mumbai.maticvigil.com/"],
+                chainName: "Mumbai Testnet",
+                nativeCurrency: {
+                    name: "MATIC",
+                    symbol: "MATIC",
+                    decimals: 18
+                },
+                blockExplorerUrls: ["https://mumbai.polygonscan.com/"]
+            }]
+        });
+        return true;
+    }
+    return false;
+}
+
 
 export default ({ children }) => {
     const [context, setContext] = useState({ provider: null, signer: null, address: '' })
@@ -58,6 +81,7 @@ export default ({ children }) => {
         let provider, signer
         if (window.ethereum) {
             provider = new ethers.providers.Web3Provider(window.ethereum, 'any')
+
         } else {
             const item = localStorage.getItem("WEB3_CONNECT_CACHED_PROVIDER");
 
@@ -76,14 +100,13 @@ export default ({ children }) => {
         }
 
 
-
         signer = provider.getSigner()
-        provider.on("disconnect", (error) => {
-            web3Modal.clearCacheProvider()
-        });
 
         try {
             const address = await signer.getAddress()
+            const { chainId } = await provider.getNetwork()
+            console.log(chainId)
+            if (chainId != 31337 && chainId != 80001) return switchNetwork()
 
             setContext({ provider, signer, address })
         } catch (err) { }
@@ -99,9 +122,10 @@ export default ({ children }) => {
             const provider = new ethers.providers.Web3Provider(instance)
             const signer = provider.getSigner()
             const address = await signer.getAddress()
-            provider.on("disconnect", (error) => {
-                web3Modal.clearCacheProvider()
-            });
+
+            const { chainId } = await provider.getNetwork()
+            if (chainId != 31337 && chainId != 80001) return switchNetwork()
+
             setContext({ provider, signer, address })
         }
         catch (err) { }
