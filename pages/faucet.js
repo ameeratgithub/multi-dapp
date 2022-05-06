@@ -40,7 +40,7 @@ export default ({ tappAddress }) => {
         loadBalance()
     }
     return <Layout>
-        <Container sx={{ display: 'flex', mt: '50px' }}>
+        <Container sx={{ display: 'flex', mt: '80px' }}>
 
             <Container sx={{ width: '40%' }}>
                 <Typography variant="h5" sx={{ mb: '10px' }}>Current Balance</Typography>

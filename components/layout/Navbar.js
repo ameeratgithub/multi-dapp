@@ -14,7 +14,7 @@ import { useState } from 'react';
 import NLink from 'next/link';
 import { Link } from '@mui/material'
 
-const pages = ['Tapp', 'NFT'];
+const pages = ['Faucet', 'NFTs'];
 // const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
 const ResponsiveAppBar = () => {
@@ -48,7 +48,7 @@ const ResponsiveAppBar = () => {
                             noWrap
                             sx={{ mr: 2, display: { xs: 'none', md: 'flex' } }}
                         >
-                            Multi DApp
+                            NFT Marketplace
                         </Link>
 
                     </NLink>
@@ -101,7 +101,7 @@ const ResponsiveAppBar = () => {
                         {pages.map((page) => (
                             <NLink key={page} href={`/${page.toLowerCase()}`} passHref>
                                 <Button
-                                    
+
                                     onClick={handleCloseNavMenu}
                                     sx={{ my: 2, color: 'white', display: 'block' }}
                                 >
