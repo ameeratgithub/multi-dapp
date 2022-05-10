@@ -21,9 +21,11 @@
     "axios": "^0.27.2",
     "ethers": "^5.6.5",
     "next": "12.1.5",
+    "nextjs-progressbar": "^0.0.14",
     "prop-types": "^15.8.1",
     "react": "17.0.2",
     "react-dom": "17.0.2",
+    "web3.storage": "^4.2.0",
     "web3modal": "^1.9.7"
   },
   "devDependencies": {

@@ -12,13 +12,15 @@ export default function ({ children }) {
 
     useEffect(() => {
         if (count > 3) return
+
         setTimeout(() => {
             setCount(c => {
+                console.log(c, address)
                 if (c > 0 && !address && !isOpen)
                     setIsOpen(true)
                 return c + 1;
             })
-        }, 1500)
+        }, 1000)
     })
 
 
@@ -27,7 +29,11 @@ export default function ({ children }) {
     }
 
     return <>
+        
+
         <ResponsiveAppBar></ResponsiveAppBar>
+        
+
         <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={isOpen}
             onClose={handleClose} autoHideDuration={6000}>
             <Alert onClose={handleClose} severity="warning" sx={{ width: '100%' }}>
