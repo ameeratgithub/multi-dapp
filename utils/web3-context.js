@@ -18,6 +18,14 @@ export const useWeb3Update = () => {
     return useContext(Web3UpdateContext)
 }
 
+const getDesiredChainId = () => {
+    if (process) {
+        const { NEXT_PUBLIC_APP_ENV, NEXT_PUBLIC_DEV_CHAINID, NEXT_PUBLIC_REL_CHAINID } = process.env
+        const chainId = NEXT_PUBLIC_APP_ENV == 'development' ? NEXT_PUBLIC_DEV_CHAINID : NEXT_PUBLIC_REL_CHAINID
+        return Number(chainId)
+    }
+    return 0;
+}
 const initializeWeb3Modal = () => {
     const providerOptions = {
         walletlink: {
@@ -48,24 +56,40 @@ const initializeWeb3Modal = () => {
 }
 
 function switchNetwork() {
-    if (window.ethereum) {
-        window.ethereum.request({
-            method: "wallet_addEthereumChain",
-            params: [{
-                chainId: "0x13881",
-                rpcUrls: ["https://rpc-mumbai.maticvigil.com/"],
-                chainName: "Mumbai Testnet",
-                nativeCurrency: {
-                    name: "MATIC",
-                    symbol: "MATIC",
-                    decimals: 18
-                },
-                blockExplorerUrls: ["https://mumbai.polygonscan.com/"]
-            }]
-        });
-        return true;
+    console.log("Switching Network")
+    const provider = window.ethereum
+    if (provider) {
+        const chainId = ethers.utils.hexlify(getDesiredChainId())
+        console.log("Hex chain Id", chainId)
+        try {
+            provider.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId}]
+            })
+            return true
+        } catch (error) {
+            if (error.code === 4902) {
+                provider.request({
+                    method: "wallet_addEthereumChain",
+                    params: [{
+                        chainId,
+                        rpcUrls: ["https://matic-mumbai.chainstacklabs.com"],
+                        chainName: "Mumbai Testnet",
+                        nativeCurrency: {
+                            name: "MATIC",
+                            symbol: "MATIC",
+                            decimals: 18
+                        },
+                        blockExplorerUrls: ["https://mumbai.polygonscan.com/"]
+                    }]
+                });
+                return true
+            }
+            console.log("Failed to switch network")
+            return false
+        }
     }
-    return false;
+    return false
 }
 
 
@@ -105,11 +129,15 @@ export default ({ children }) => {
         try {
             const address = await signer.getAddress()
             const { chainId } = await provider.getNetwork()
-            console.log(chainId)
-            if (chainId != 31337 && chainId != 80001) return switchNetwork()
+
+            const desiredChainId = getDesiredChainId()
+            console.log(chainId, desiredChainId)
+            if (chainId !== desiredChainId) return switchNetwork()
 
             setContext({ provider, signer, address })
-        } catch (err) { }
+        } catch (err) {
+            console.log(err)
+        }
 
     }
 
@@ -123,8 +151,9 @@ export default ({ children }) => {
             const signer = provider.getSigner()
             const address = await signer.getAddress()
 
-            const { chainId } = await provider.getNetwork()
-            if (chainId != 31337 && chainId != 80001) return switchNetwork()
+            const desiredChainId = getDesiredChainId()
+            console.log(chainId, desiredChainId)
+            if (chainId !== desiredChainId) return switchNetwork()
 
             setContext({ provider, signer, address })
         }

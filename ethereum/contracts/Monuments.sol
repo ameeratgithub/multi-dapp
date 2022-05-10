@@ -17,10 +17,12 @@ contract Monuments is ERC721, IERC721MetaData, IERC721Receiver {
     address public owner;
 
     uint256 public tokenCount;
-    
+
     // Stores token/asset name with extension by ID
     // mapping(uint256 => string) private _tokenNames;
     string private _baseURI;
+
+    mapping(uint256 => string) private _tokenURIs;
 
     IERC20 public tapp;
 
@@ -42,14 +44,15 @@ contract Monuments is ERC721, IERC721MetaData, IERC721Receiver {
             _owners[_tokenId] != address(0),
             "Monuments: address doesn't exist"
         );
-        return
-            bytes(_baseURI).length > 0
-                ? string(abi.encodePacked(_baseURI, _tokenId.toString(),".json"))
-                : "";
+        return _tokenURIs[_tokenId];
+        // return
+        //     bytes(_baseURI).length > 0
+        //         ? string(abi.encodePacked(_baseURI, _tokenId.toString(),".json"))
+        //         : "";
     }
 
     // Need to approve tapp tokens first for this smart contract
-    function mint(uint256 _tokenPrice) public {
+    function mint(uint256 _tokenPrice, string calldata _uri) public {
         tokenCount++;
 
         uint256 tokenPrice = tokenCount * 100 * 10**18;
@@ -63,11 +66,11 @@ contract Monuments is ERC721, IERC721MetaData, IERC721Receiver {
             "Monuments: Smart Contract not approved"
         );
 
-        // _tokenNames[tokenCount] = _name;
         tapp.transferFrom(msg.sender, address(this), tokenPrice);
 
         _balances[msg.sender]++;
         _owners[tokenCount] = msg.sender;
+        _tokenURIs[tokenCount] = _uri;
 
         emit Transfer(address(0), msg.sender, tokenCount);
     }

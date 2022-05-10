@@ -13,7 +13,7 @@ export default ({ tappAddress }) => {
     const [amount, setAmount] = useState('')
     const [loading, setLoading] = useState(false)
 
-    const { signer, provider, address } = useWeb3()
+    const { signer, address } = useWeb3()
 
     useEffect(() => {
         if (address) loadBalance()
