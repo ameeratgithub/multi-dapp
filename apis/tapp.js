@@ -4,7 +4,7 @@ import { getTappContract } from '../utils/ethers'
 
 
 
-export const getUserBalance =  (address, signer, tappAddress) => {
+export const getUserBalance = (address, signer, tappAddress) => {
     const tapp = getTappContract(signer, tappAddress)
     return tapp.balanceOf(address)
 }

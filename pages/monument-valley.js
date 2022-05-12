@@ -1,13 +1,14 @@
-import { Card, CardContent, CardHeader, Grid, IconButton, ImageList, ImageListItem, ImageListItemBar, ListSubheader, Stack } from "@mui/material"
+import { Button, Grid, Stack, Typography, Modal } from "@mui/material"
 import { useEffect, useState } from "react"
 import Layout from "../components/layout"
 import { loadMetadata } from "../utils/ipfs"
-import Image from "next/image"
-import InfoIcon from '@mui/icons-material/Info';
 import NFTItem from "../components/NFTItem"
+import MintingForm from "../components/MintingForm"
 
 export default ({ jsonUrls }) => {
     const [json, setJson] = useState([])
+    const [openMintingModal, setOpenMintingModal] = useState(true)
+    const [estimatePrice, setEstimatePrice] = useState('')
 
     useEffect(() => {
         loadData()
@@ -18,44 +19,24 @@ export default ({ jsonUrls }) => {
         setTimeout(() => {
             setJson(jsonArray)
         }, 300)
-
     }
+
     return <Layout>
-        <Grid container spacing={12} sx={{ mt: '20px', mb:'40px' }}>
-            {json.map(j => <Grid item xs={12} md={12} lg={6} xl={6} key={j.name}>
-                <NFTItem nft={j} ></NFTItem>
-            </Grid>)}
-        </Grid>
-
-
-        {/* <ImageList>
-            <ImageListItem key="header" cols={2}>
-                <ListSubheader component="div">Monument Valley Collection</ListSubheader>
-            </ImageListItem>
-            {json.map((item) => (
-                <ImageListItem key={item.image}>
-                    <img
-                        src={item.image}
-                        alt={item.name}
-                        loading="lazy"
-                        height="600"
-                        width="300"
-                    />
-                    <ImageListItemBar
-                        title={item.name}
-                        subtitle={item.description}
-                        actionIcon={
-                            <IconButton
-                                sx={{ color: 'rgba(255, 255, 255, 0.54)' }}
-                                aria-label={`info about ${item.title}`}
-                            >
-                                <InfoIcon />
-                            </IconButton>
-                        }
-                    />
-                </ImageListItem>
-            ))}
-        </ImageList> */}
+        <Modal open={openMintingModal} onClose={() => setOpenMintingModal(false)}>
+            <MintingForm></MintingForm>
+        </Modal>
+        <Stack>
+            <Grid container direction="row" justifyContent="space-between" sx={{ mt: '20px' }}>
+                <Typography variant="h5">Monument Valley Collection</Typography>
+                <Button variant="contained" color="success"
+                    onClick={e => setOpenMintingModal(true)}>Mint Custom NFT</Button>
+            </Grid>
+            <Grid container spacing={12} sx={{ mt: '1px', mb: '40px' }}>
+                {json.map(j => <Grid item xs={12} md={12} lg={6} xl={6} key={j.name}>
+                    <NFTItem nft={j} ></NFTItem>
+                </Grid>)}
+            </Grid>
+        </Stack>
     </Layout>
 }
 
