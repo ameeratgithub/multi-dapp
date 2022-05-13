@@ -10,9 +10,7 @@ const _e = (amount) => {
     return ethers.utils.parseEther(amount.toString())
 }
 
-const baseURI = 'https://monuments.com/'
-
-describe.only("Monuments", () => {
+xdescribe("Monuments", () => {
     let monuments, signer, signer2, signer3, tapp
 
     beforeEach(async () => {
@@ -22,21 +20,21 @@ describe.only("Monuments", () => {
         tapp = await Tapp.deploy()
 
         const Monuments = await ethers.getContractFactory('Monuments')
-        monuments = await Monuments.deploy("Monument Valley", "MV", tapp.address, baseURI)
+        monuments = await Monuments.deploy(tapp.address)
         await monuments.deployed()
 
-        await tapp.mint(_e(2000))
-        await tapp.connect(signer2).mint(_e(2000))
-        await tapp.connect(signer3).mint(_e(2000))
+        await tapp.mint(_e(4000))
+        await tapp.connect(signer2).mint(_e(4000))
+        await tapp.connect(signer3).mint(_e(4000))
 
-        await tapp.approve(monuments.address, _e(2000));
-        await tapp.connect(signer2).approve(monuments.address, _e(2000));
-        await tapp.connect(signer3).approve(monuments.address, _e(2000));
+        await tapp.approve(monuments.address, _e(4000));
+        await tapp.connect(signer2).approve(monuments.address, _e(4000));
+        await tapp.connect(signer3).approve(monuments.address, _e(4000));
 
     })
     it("mints tokens to msg.sender", async () => {
-        await monuments.mint(_e(100))
-        await monuments.mint(_e(200))
+        await monuments.mint(_e(100), "uri")
+        await monuments.mint(_e(200), "uri")
 
         const ownerof1 = await monuments.ownerOf(1)
         const ownerof2 = await monuments.ownerOf(2)
@@ -50,8 +48,8 @@ describe.only("Monuments", () => {
 
     })
     it("approves an operator for all tokens", async () => {
-        await monuments.mint(_e(100))
-        await monuments.mint(_e(200))
+        await monuments.mint(_e(100), "uri")
+        await monuments.mint(_e(200), "uri")
 
         await monuments.setApprovalForAll(signer2.address, true)
 
@@ -61,21 +59,21 @@ describe.only("Monuments", () => {
 
     })
     it("gets token uris", async () => {
-        await monuments.mint(_e(100))
-        await monuments.mint(_e(200))
+        await monuments.mint(_e(100),"uri")
+        await monuments.mint(_e(200),"uri")
 
 
 
         const uri1 = await monuments.tokenURI(1)
         const uri2 = await monuments.tokenURI(2)
 
-        expect(uri1).to.be.equal(baseURI+ "1.json")
-        expect(uri2).to.be.equal(baseURI+ "2.json")
+        expect(uri1).to.be.equal("uri")
+        expect(uri2).to.be.equal("uri")
 
     })
     it("approves an operator for specific token", async () => {
-        await monuments.mint(_e(100))
-        await monuments.mint(_e(200))
+        await monuments.mint(_e(100),"uri")
+        await monuments.mint(_e(200),"uri")
 
         await monuments.approve(signer2.address, 1)
         await monuments.approve(signer3.address, 2)
@@ -90,8 +88,8 @@ describe.only("Monuments", () => {
 
 
     it("transfer tokens to specified address", async () => {
-        await monuments.mint(_e(100))
-        await monuments.mint(_e(200))
+        await monuments.mint(_e(100),"uri")
+        await monuments.mint(_e(200),"uri")
 
         await monuments.approve(signer2.address, 1)
         await monuments.approve(signer3.address, 2)
