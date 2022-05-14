@@ -33,9 +33,9 @@ describe.only("Collections", () => {
 
     describe("Success", () => {
         it('creates a collection', async () => {
-            const tx1 = await collections.createCollection("collection name", "collection symbol", "banner uri")
-            const tx2 = await collections.createCollection("collection name1", "collection symbol1", "banner uri")
-            const tx3 = await collections.createCollection("collection name1", "collection symbol1", "banner uri")
+            const tx1 = await collections.createCollection("collection name", "collection symbol", "banner uri", 0)
+            const tx2 = await collections.createCollection("collection name1", "collection symbol1", "banner uri", 0)
+            const tx3 = await collections.createCollection("collection name1", "collection symbol1", "banner uri", 0)
 
             await tx1.wait(1)
             await tx2.wait(1)
@@ -52,9 +52,9 @@ describe.only("Collections", () => {
             expect(address1 != address2 && address2 != address3 && address1 != address3).to.be.true
         })
         it('gets right collection owner', async () => {
-            const tx1 = await collections.createCollection("collection name", "collection symbol", "banner uri")
-            const tx2 = await collections.connect(signer2).createCollection("collection name1", "collection symbol1", "banner uri")
-            const tx3 = await collections.connect(signer3).createCollection("collection name1", "collection symbol1", "banner uri")
+            const tx1 = await collections.createCollection("collection name", "collection symbol", "banner uri", 0)
+            const tx2 = await collections.connect(signer2).createCollection("collection name1", "collection symbol1", "banner uri", 0)
+            const tx3 = await collections.connect(signer3).createCollection("collection name1", "collection symbol1", "banner uri", 0)
 
             await tx1.wait(1)
             await tx2.wait(1)
@@ -70,9 +70,9 @@ describe.only("Collections", () => {
 
         })
         it('gets the properties of contract', async () => {
-            const tx1 = await collections.createCollection("collection name", "collection symbol", "banner uri")
-            const tx2 = await collections.connect(signer2).createCollection("collection name1", "collection symbol1", "banner uri")
-            const tx3 = await collections.connect(signer3).createCollection("collection name2", "collection symbol2", "banner uri")
+            const tx1 = await collections.createCollection("collection name", "collection symbol", "banner uri", 0)
+            const tx2 = await collections.connect(signer2).createCollection("collection name1", "collection symbol1", "banner uri", 0)
+            const tx3 = await collections.connect(signer3).createCollection("collection name2", "collection symbol2", "banner uri", 0)
 
             await tx1.wait(1)
             await tx2.wait(1)
@@ -106,9 +106,9 @@ describe.only("Collections", () => {
             expect(c3Symbol).to.equal('collection symbol2')
         })
         it('gets the list of collections by user', async () => {
-            const tx1 = await collections.connect(signer2).createCollection("collection name", "collection symbol", "banner uri")
-            const tx2 = await collections.connect(signer3).createCollection("collection name1", "collection symbol1", "banner uri")
-            const tx3 = await collections.createCollection("collection name2", "collection symbol2", "banner uri")
+            const tx1 = await collections.connect(signer2).createCollection("collection name", "collection symbol", "banner uri", 0)
+            const tx2 = await collections.connect(signer3).createCollection("collection name1", "collection symbol1", "banner uri", 0)
+            const tx3 = await collections.createCollection("collection name2", "collection symbol2", "banner uri", 0)
 
             await tx1.wait(1)
             await tx2.wait(1)
@@ -129,9 +129,9 @@ describe.only("Collections", () => {
         })
         it('gets right contract owner', async () => {
             const [tx1, tx2, tx3] = await Promise.all([
-                collections.createCollection("collection name", "collection symbol", "banner uri"),
-                collections.connect(signer2).createCollection("collection name1", "collection symbol1", "banner uri"),
-                collections.connect(signer3).createCollection("collection name1", "collection symbol1", "banner uri")
+                collections.createCollection("collection name", "collection symbol", "banner uri", 0),
+                collections.connect(signer2).createCollection("collection name1", "collection symbol1", "banner uri", 0),
+                collections.connect(signer3).createCollection("collection name1", "collection symbol1", "banner uri", 0)
             ])
 
 
@@ -173,9 +173,9 @@ describe.only("Collections", () => {
             await monuments2.deployed()
             await monuments3.deployed()
 
-            const tx1 = await collections.connect(signer2).addCollection(monuments.address, "banner uri")
-            const tx2 = await collections.connect(signer3).addCollection(monuments2.address, "banner uri")
-            const tx3 = await collections.addCollection(monuments3.address, "banner uri")
+            const tx1 = await collections.connect(signer2).addCollection(monuments.address)
+            const tx2 = await collections.connect(signer3).addCollection(monuments2.address)
+            const tx3 = await collections.addCollection(monuments3.address)
 
 
 
@@ -225,26 +225,26 @@ describe.only("Collections", () => {
 
             await monuments.deployed()
 
-            const tx1 = collections.addCollection(monuments.address, "banner uri")
+            const tx1 = collections.addCollection(monuments.address)
 
             await expect(tx1).to.eventually.be.rejectedWith("You're not the owner of contract")
 
         })
-        it('rejects other user to add the contract', async () => {
+        it('rejects invalid contract (like EOA)', async () => {
 
             const Monuments = await ethers.getContractFactory('Monuments')
             const monuments = await Monuments.connect(signer2).deploy(tapp.address)
 
             await monuments.deployed()
 
-            const tx1 = collections.addCollection(signer2.address, "banner uri")
+            const tx1 = collections.addCollection(signer2.address)
 
             await expect(tx1).to.eventually.be.rejectedWith("Invalid contract")
 
         })
-        it('rejects other user to add the contract', async () => {
+        it('rejects zero address', async () => {
 
-            const tx1 = collections.addCollection('0x0000000000000000000000000000000000000000', "banner uri")
+            const tx1 = collections.addCollection('0x0000000000000000000000000000000000000000')
 
             await expect(tx1).to.eventually.be.rejectedWith("Invalid address")
 
